@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sormas-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: sormas-operator
+  template:
+    metadata:
+      labels:
+        name: sormas-operator
+    spec:
+      serviceAccountName: sormas-operator
+      containers:
+        - name: sormas-operator
+          # Replace this with the built image name
+          image: docker.netzlink.com/operators/sormas-operator:5f2f789e0a
+          command:
+          - sormas-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "sormas-operator"
+          resources:
+            limits:
+              cpu: 184m
+              memory: 224M
+            requests:
+              cpu:  84m
+              memory: 100M
