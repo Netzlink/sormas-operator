@@ -1,0 +1,7 @@
+apiVersion: sormas.netzlink.com/v1alpha1
+kind: Sormas
+metadata:
+  name: example-sormas
+spec:
+  # Add fields here
+  size: 3
