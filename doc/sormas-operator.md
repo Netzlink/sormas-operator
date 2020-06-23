@@ -84,6 +84,17 @@ This Object defines the behavior of k8s towards the database.
   - SORMAS_POSTGRES_USER
   - TZ
 
+<!--
+@startuml assets/SormasDatabaseObject
+
+Alice -> Bob: Hello
+Bob -> Alice: Hi!
+	
+@enduml
+-->
+
+![sormas database](assets/SormasDatabaseObject.svg)
+
 #### Volumes
 * /var/lib/postgresql/data
 
@@ -93,3 +104,19 @@ This Object defines the behavior of k8s towards the database.
 #### Constants
 command: ```-c 'config_file=/etc/postgresql/postgresql.conf'```  
 replica: 1  
+
+### YAMLs
+
+#### Server Deployment
+
+#### Postgres StatefulSet
+
+#### Sormas ConfigMap
+
+#### Sormas Secret
+
+#### Sormas Server Service
+
+#### Sormas Postgres Service
+
+#### Server Autoscaler
