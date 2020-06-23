@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/code-generator/pkg/namer"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -9,9 +10,39 @@ import (
 
 // SormasSpec defines the desired state of Sormas
 type SormasSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
-	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	//TODO: Types?
+	Database struct {
+		Host 		string	`json:"host"`
+		User 		string	`json:"user"`
+		SecretName 	string	`json:"secretName"`
+		Name		string	`json:"name"`
+		AuditName	string	`json:"auditName"`
+	} `json:"database"`
+	Server struct {
+		ServerUrl	string	`json:"url"`
+		DomainName	string	`json:"domain"`
+		JvmMax		string	`json:"jvmMax"`
+		Version		string 	`json:"version"`
+		DevMode		string 	`json:"devMode"` //TODO: Type
+	} `json:"server"`
+	Mail struct {
+		MailHost	string 	`json:"host"`
+		MailFrom	string 	`json:"from"`
+		SenderAddr	string 	`json:"senderAddress"`
+		SenderName	string 	`json:"senderName"`
+	} `json:"mail"`
+	Config struct {
+		Locale struct {
+			Latitude	string 	`json:"latitude"`
+			Longitude	string 	`json:"longitude"`
+			Locale 		string 	`json:"locale"`
+			MapZoom		string 	`json:"mapZoom"`
+			Timezone	string 	`json:"timezone"` // as TZ
+			GeoUUID		string 	`json:"geoUUID"`
+		} `json:"local"`
+		Epidprefix	string 	`json:"epidprefix"`
+		Seperator	string 	`json:"seperator"`
+	} `json:"config"`
 }
 
 // SormasStatus defines the observed state of Sormas
