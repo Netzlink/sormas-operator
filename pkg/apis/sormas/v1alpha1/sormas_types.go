@@ -11,37 +11,43 @@ import (
 // SormasSpec defines the desired state of Sormas
 type SormasSpec struct {
 	Database struct {
-		Host 		string	`json:"host"`
-		User 		string	`json:"user"`
-		SecretName 	string	`json:"secretName"`
-		Name		string	`json:"name"`
-		AuditName	string	`json:"audit"`
+		Image     string `json:"image"`
+		Host      string `json:"host"`     // Done nil or ""  ?
+		User      string `json:"user"`     // Done
+		Password  string `json:"password"` // base64 // Done
+		Name      string `json:"name"`     // Done
+		AuditName string `json:"audit"`    // Done
+		Size      string `json:"size"`
 	} `json:"database"`
 	Server struct {
-		ServerUrl	string	`json:"url"`
-		DomainName	string	`json:"domain"`
-		JvmMax		string	`json:"jvmMax"`
-		Version		string 	`json:"version"`
-		DevMode		string 	`json:"dev"`
-		Replica 	string 	`json:"replica"`
+		Image      string `json:"image"`    // Done
+		ServerURL  string `json:"url"`      // Done
+		DomainName string `json:"domain"`   // Done
+		JvmMax     string `json:"jvmMax"`   // Done
+		Version    string `json:"version"`  // Done
+		DevMode    string `json:"dev"`      // Done
+		Replicas   int32  `json:"replica"`  // Done
+		Custom     bool   `json:"custom"`   // Done Deploy! TODO pvc
+		Password   string `json:"password"` // base64 TODO init??
 	} `json:"server"`
 	Mail struct {
-		MailHost	string 	`json:"host"`
-		MailFrom	string 	`json:"from"`
-		SenderAddr	string 	`json:"senderAddress"`
-		SenderName	string 	`json:"senderName"`
+		MailHost   string `json:"host"`          // Done
+		MailFrom   string `json:"from"`          // Done
+		SenderAddr string `json:"senderAddress"` // Done
+		SenderName string `json:"senderName"`    // Done
 	} `json:"mail"`
 	Config struct {
 		Locale struct {
-			Latitude	string 	`json:"latitude"`
-			Longitude	string 	`json:"longitude"`
-			Locale 		string 	`json:"locale"`
-			MapZoom		string 	`json:"mapZoom"`
-			Timezone	string 	`json:"timezone"`
-			GeoUUID		string 	`json:"geoUUID"`
+			Latitude  string `json:"latitude"`  // Done
+			Longitude string `json:"longitude"` // Done
+			Locale    string `json:"locale"`    // Done
+			MapZoom   string `json:"mapZoom"`   // Done
+			Timezone  string `json:"timezone"`  // Done
+			GeoUUID   string `json:"geoUUID"`   // Done
 		} `json:"local"`
-		Epidprefix		string 	`json:"epidprefix"`
-		Seperator		string 	`json:"seperator"`
+		Epidprefix string `json:"epidprefix"` 	// Done
+		Seperator  string `json:"seperator"`	// Done
+		Ticket     string `json:"ticket"`
 	} `json:"config"`
 }
 
@@ -50,7 +56,7 @@ type SormasStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Status 	string 	`json:"status"`
+	Status string `json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

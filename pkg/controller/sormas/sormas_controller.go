@@ -4,11 +4,15 @@ import (
 	"context"
 
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
-	corev1 "k8s.io/api/core/v1"
+	routev1 "github.com/openshift/client-go/route/listeners/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/kubernetes/pkg/apis/core"
+	"k8s.io/kubernetes/staging/src/k8s.io/client-go/informers/auditregistration/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -21,7 +25,7 @@ import (
 
 var log = logf.Log.WithName("controller_sormas")
 
-/**
+/**k8s.io/apimachinery/pkg/labels"pi 
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
 * business logic.  Delete these comments after modifying this file.*
  */
@@ -51,15 +55,58 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner Sormas
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	// Watching Deployment, PVC, Statefulset, Secret, Configmap, Route
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
 	})
 	if err != nil {
 		return err
 	}
+
+	err = c.Watch(&source.Kind{Type: &core.PersistentVolumeClaim{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &sormasv1alpha1.Sormas{},
+	})
+	if err != nil {
+		return err
+	}
+
+
+	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &sormasv1alpha1.Sormas{},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &core.Secret{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &sormasv1alpha1.Sormas{},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = c.Watch(&source.Kind{Type: &core.ConfigMap{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &sormasv1alpha1.Sormas{},
+	})
+	if err != nil {
+		return err
+	}
+
+	// TODO: make this shit working again
+	err = c.Watch(&source.Kind{Type: &openshift.route{} }, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &sormasv1alpha1.Sormas{},
+	})
+	if err != nil {
+		return err
+	}
+
 
 	return nil
 }
@@ -101,7 +148,15 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	// Define a new Pod object
-	pod := newPodForCR(instance)
+	// pod := newPodForCR(instance)
+	sormasSecret 		:= newSecretForCR(instance)
+	sormasConfigMap 	:= newConfigMapForCR(instance)
+	sormasDeployment 	:= newDeploymentForCR(instance)
+	sormasPVC			:= newPVCForCR(instance)
+	sormasStatefulSet	:= newStatefulSet(instance)
+	sormasRoute			:= newRoute(instance)
+
+
 
 	// Set Sormas instance as the owner and controller
 	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
@@ -109,7 +164,8 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	// Check if this Pod already exists
-	found := &corev1.Pod{}
+	found := &corev1.Secret{}
+	
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
 	if err != nil && errors.IsNotFound(err) {
 		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
@@ -127,27 +183,4 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	// Pod already exists - don't requeue
 	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
 	return reconcile.Result{}, nil
-}
-
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *sormasv1alpha1.Sormas) *corev1.Pod {
-	labels := map[string]string{
-		"app": cr.Name,
-	}
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
-		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
-				},
-			},
-		},
-	}
 }
