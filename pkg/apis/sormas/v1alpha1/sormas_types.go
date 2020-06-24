@@ -2,7 +2,7 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/code-generator/pkg/namer"
+	// "k8s.io/code-generator/pkg/namer"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -10,20 +10,20 @@ import (
 
 // SormasSpec defines the desired state of Sormas
 type SormasSpec struct {
-	//TODO: Types?
 	Database struct {
 		Host 		string	`json:"host"`
 		User 		string	`json:"user"`
 		SecretName 	string	`json:"secretName"`
 		Name		string	`json:"name"`
-		AuditName	string	`json:"auditName"`
+		AuditName	string	`json:"audit"`
 	} `json:"database"`
 	Server struct {
 		ServerUrl	string	`json:"url"`
 		DomainName	string	`json:"domain"`
 		JvmMax		string	`json:"jvmMax"`
 		Version		string 	`json:"version"`
-		DevMode		string 	`json:"devMode"` //TODO: Type
+		DevMode		string 	`json:"dev"`
+		Replica 	string 	`json:"replica"`
 	} `json:"server"`
 	Mail struct {
 		MailHost	string 	`json:"host"`
@@ -37,11 +37,11 @@ type SormasSpec struct {
 			Longitude	string 	`json:"longitude"`
 			Locale 		string 	`json:"locale"`
 			MapZoom		string 	`json:"mapZoom"`
-			Timezone	string 	`json:"timezone"` // as TZ
+			Timezone	string 	`json:"timezone"`
 			GeoUUID		string 	`json:"geoUUID"`
 		} `json:"local"`
-		Epidprefix	string 	`json:"epidprefix"`
-		Seperator	string 	`json:"seperator"`
+		Epidprefix		string 	`json:"epidprefix"`
+		Seperator		string 	`json:"seperator"`
 	} `json:"config"`
 }
 
@@ -50,6 +50,7 @@ type SormasStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	Status 	string 	`json:"status"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -57,6 +58,7 @@ type SormasStatus struct {
 // Sormas is the Schema for the sormas API
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=sormas,scope=Namespaced
+// +kubebuilder:storageversion=
 type Sormas struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
