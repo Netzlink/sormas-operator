@@ -4,7 +4,7 @@ import (
 	"context"
 
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
-	routev1 "github.com/openshift/client-go/route/listeners/route/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -99,7 +99,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// TODO: make this shit working again
-	err = c.Watch(&source.Kind{Type: &openshift.route{} }, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &routev1.Route{} }, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
 	})
@@ -156,31 +156,107 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	sormasStatefulSet	:= newStatefulSet(instance)
 	sormasRoute			:= newRoute(instance)
 
-
-
-	// Set Sormas instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
-		return reconcile.Result{}, err
+	for _, obj := range []metav1.Object{
+		sormasSecret,
+		sormasConfigMap,
+		sormasDeployment,
+		sormasPVC,
+		sormasStatefulSet,
+		sormasRoute,
+	} {
+		if err := controllerutil.SetControllerReference(instance, obj, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
 	}
 
 	// Check if this Pod already exists
-	found := &corev1.Secret{}
+	foundSecret := &core.Secret{}
+	foundConfigMap := &core.ConfigMap{}
+	foundDeployment := &appsv1.Deployment{}
+	foundPVC := &core.PersistentVolumeClaim{}
+	foundStatefulSet := &appsv1.StatefulSet{}
+	foundRoute := &routev1.Route{}
+
 	
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasSecret.Name, Namespace: sormasSecret.Namespace}, foundSecret)
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.client.Create(context.TODO(), pod)
+		reqLogger.Info("Creating a new Secret", "Namespace", sormasSecret.Namespace, "Name", sormasSecret.Name)
+		err = r.client.Create(context.TODO(), foundSecret)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-
-		// Pod created successfully - don't requeue
+		// Secret created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
 	}
 
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasConfigMap.Name, Namespace: sormasConfigMap.Namespace}, foundSecret)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new ConfigMap", "Namespace", sormasConfigMap.Namespace, "Name", sormasConfigMap.Name)
+		err = r.client.Create(context.TODO(), foundConfigMap)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// ConfigMap created successfully - don't requeue
+		return reconcile.Result{}, nil
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasDeployment.Name, Namespace: sormasDeployment.Namespace}, foundDeployment)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new Deployment", "Namespace", sormasDeployment.Namespace, "Name", sormasDeployment.Name)
+		err = r.client.Create(context.TODO(), foundDeployment)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// Deployment created successfully - don't requeue
+		return reconcile.Result{}, nil
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasPVC.Name, Namespace: sormasPVC.Namespace}, foundPVC)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new PVC", "Namespace", sormasPVC.Namespace, "Name", sormasPVC.Name)
+		err = r.client.Create(context.TODO(), foundPVC)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// PVC created successfully - don't requeue
+		return reconcile.Result{}, nil
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasStatefulSet.Name, Namespace: sormasStatefulSet.Namespace}, foundStatefulSet)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new StatefulSet", "Namespace", sormasStatefulSet.Namespace, "Name", sormasStatefulSet.Name)
+		err = r.client.Create(context.TODO(), foundStatefulSet)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// StatefulSet created successfully - don't requeue
+		return reconcile.Result{}, nil
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasRoute.Name, Namespace: sormasRoute.Namespace}, foundRoute)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new Route", "Namespace", sormasRoute.Namespace, "Name", sormasRoute.Name)
+		err = r.client.Create(context.TODO(), foundRoute)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// Route created successfully - don't requeue
+		return reconcile.Result{}, nil
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	// Evrything already exists - don't requeue
+	reqLogger.Info("Skip reconcile: Secret already exists", "Namespace", foundSecret.Namespace, "Name", foundSecret.Name)
 	return reconcile.Result{}, nil
 }
