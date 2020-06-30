@@ -25,7 +25,7 @@ type SormasSpec struct {
 		// audit database name
 		AuditName string `json:"audit"`    // Done
 		// pvc size
-		Size      string `json:"size"`
+		Size      int64  `json:"size"`
 	} `json:"database"`
 	// Server-config
 	Server struct {
@@ -69,7 +69,7 @@ type SormasSpec struct {
 			Longitude string `json:"longitude"` // Done
 			// Linux locale
 			Locale    string `json:"locale"`    // Done
-			// OPenStreetmap zoom
+			// OpenStreetmap zoom
 			MapZoom   string `json:"mapZoom"`   // Done
 			// Timezone
 			Timezone  string `json:"timezone"`  // Done

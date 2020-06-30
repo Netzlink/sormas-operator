@@ -6,9 +6,8 @@ import (
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/apis/core"
@@ -90,14 +89,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &core.ConfigMap{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &sormasv1alpha1.Sormas{},
-	})
-	if err != nil {
-		return err
-	}
-
 	// TODO: make this shit working again
 	err = c.Watch(&source.Kind{Type: &routev1.Route{} }, &handler.EnqueueRequestForOwner{
 		IsController: true,
@@ -150,15 +141,13 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	// Define a new Pod object
 	// pod := newPodForCR(instance)
 	sormasSecret 		:= newSecretForCR(instance)
-	sormasConfigMap 	:= newConfigMapForCR(instance)
 	sormasDeployment 	:= newDeploymentForCR(instance)
 	sormasPVC			:= newPVCForCR(instance)
-	sormasStatefulSet	:= newStatefulSet(instance)
-	sormasRoute			:= newRoute(instance)
+	sormasStatefulSet	:= newStatefulSetForCR(instance)
+	sormasRoute			:= newRouteForCR(instance)
 
 	for _, obj := range []metav1.Object{
 		sormasSecret,
-		sormasConfigMap,
 		sormasDeployment,
 		sormasPVC,
 		sormasStatefulSet,
@@ -171,7 +160,6 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 
 	// Check if this Pod already exists
 	foundSecret := &core.Secret{}
-	foundConfigMap := &core.ConfigMap{}
 	foundDeployment := &appsv1.Deployment{}
 	foundPVC := &core.PersistentVolumeClaim{}
 	foundStatefulSet := &appsv1.StatefulSet{}
@@ -186,19 +174,6 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 			return reconcile.Result{}, err
 		}
 		// Secret created successfully - don't requeue
-		return reconcile.Result{}, nil
-	} else if err != nil {
-		return reconcile.Result{}, err
-	}
-
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasConfigMap.Name, Namespace: sormasConfigMap.Namespace}, foundSecret)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new ConfigMap", "Namespace", sormasConfigMap.Namespace, "Name", sormasConfigMap.Name)
-		err = r.client.Create(context.TODO(), foundConfigMap)
-		if err != nil {
-			return reconcile.Result{}, err
-		}
-		// ConfigMap created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
@@ -256,7 +231,7 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
-	// Evrything already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Secret already exists", "Namespace", foundSecret.Namespace, "Name", foundSecret.Name)
+	// Everything already exists - don't requeue
+	reqLogger.Info("Skip reconcile: Sormas already exists", "Namespace", foundSecret.Namespace, "Name", foundSecret.Name)
 	return reconcile.Result{}, nil
 }
