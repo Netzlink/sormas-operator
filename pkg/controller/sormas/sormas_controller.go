@@ -6,12 +6,11 @@ import (
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/apis/core"
-	"k8s.io/kubernetes/staging/src/k8s.io/client-go/informers/auditregistration/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -24,7 +23,7 @@ import (
 
 var log = logf.Log.WithName("controller_sormas")
 
-/**k8s.io/apimachinery/pkg/labels"pi 
+/**k8s.io/apimachinery/pkg/labels"pi
 * USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
 * business logic.  Delete these comments after modifying this file.*
  */
@@ -72,7 +71,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-
 	err = c.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
@@ -90,7 +88,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// TODO: make this shit working again
-	err = c.Watch(&source.Kind{Type: &routev1.Route{} }, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &routev1.Route{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
 	})
@@ -98,6 +96,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	err = c.Watch(&source.Kind{Type: &core.Service{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &sormasv1alpha1.Sormas{},
+	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -140,15 +145,17 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 
 	// Define a new Pod object
 	// pod := newPodForCR(instance)
-	sormasSecret 		:= newSecretForCR(instance)
-	sormasDeployment 	:= newDeploymentForCR(instance)
-	sormasPVC			:= newPVCForCR(instance)
-	sormasStatefulSet	:= newStatefulSetForCR(instance)
-	sormasRoute			:= newRouteForCR(instance)
+	sormasSecret := newSecretForCR(instance)
+	sormasDeployment := newDeploymentForCR(instance)
+	sormasService := newServiceForCR(instance)
+	sormasPVC := newPVCForCR(instance)
+	sormasStatefulSet := newStatefulSetForCR(instance)
+	sormasRoute := newRouteForCR(instance)
 
 	for _, obj := range []metav1.Object{
 		sormasSecret,
 		sormasDeployment,
+		sormasService,
 		sormasPVC,
 		sormasStatefulSet,
 		sormasRoute,
@@ -161,11 +168,11 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	// Check if this Pod already exists
 	foundSecret := &core.Secret{}
 	foundDeployment := &appsv1.Deployment{}
+	foundService := &core.Service{}
 	foundPVC := &core.PersistentVolumeClaim{}
 	foundStatefulSet := &appsv1.StatefulSet{}
 	foundRoute := &routev1.Route{}
 
-	
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasSecret.Name, Namespace: sormasSecret.Namespace}, foundSecret)
 	if err != nil && errors.IsNotFound(err) {
 		reqLogger.Info("Creating a new Secret", "Namespace", sormasSecret.Namespace, "Name", sormasSecret.Name)
@@ -187,6 +194,19 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 			return reconcile.Result{}, err
 		}
 		// Deployment created successfully - don't requeue
+		return reconcile.Result{}, nil
+	} else if err != nil {
+		return reconcile.Result{}, err
+	}
+
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasService.Name, Namespace: sormasService.Namespace}, foundService)
+	if err != nil && errors.IsNotFound(err) {
+		reqLogger.Info("Creating a new Service", "Namespace", sormasService.Namespace, "Name", sormasService.Name)
+		err = r.client.Create(context.TODO(), foundService)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// Service created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err

@@ -4,11 +4,11 @@ import (
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-	
-func newStatefulSetForCR(cr *v1alpha1sormas.Sormas) *appsv1.StatefulSet {
+
+func newStatefulSetForCR(cr *sormasv1alpha1.Sormas) *appsv1.StatefulSet {
 	sormasLabels := map[string]string{
 		"app": cr.Name,
 	}
@@ -17,10 +17,11 @@ func newStatefulSetForCR(cr *v1alpha1sormas.Sormas) *appsv1.StatefulSet {
 		Namespace: cr.Namespace,
 		Labels:    sormasLabels,
 	}
+	replicas := int32(1)
 	return &appsv1.StatefulSet{
 		ObjectMeta: statefulsetMetaData,
 		Spec: appsv1.StatefulSetSpec{
-			Replicas: 1,
+			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: sormasLabels,
 			},
@@ -29,11 +30,11 @@ func newStatefulSetForCR(cr *v1alpha1sormas.Sormas) *appsv1.StatefulSet {
 				Spec: v1.PodSpec{
 					Containers: []v1.Container{
 						v1.Container{
-							Name: "postgres",
+							Name:  "postgres",
 							Image: cr.Spec.Database.Image,
 							VolumeMounts: []v1.VolumeMount{
 								v1.VolumeMount{
-									Name: "data",
+									Name:      "data",
 									MountPath: "/var/lib/postgresql/data",
 								},
 							},
@@ -50,11 +51,11 @@ func newStatefulSetForCR(cr *v1alpha1sormas.Sormas) *appsv1.StatefulSet {
 									},
 								},
 								v1.EnvVar{
-									Name: "DB_NAME",
+									Name:  "DB_NAME",
 									Value: cr.Spec.Database.Name,
 								},
 								v1.EnvVar{
-									Name: "DB_NAME_AUDIT",
+									Name:  "DB_NAME_AUDIT",
 									Value: cr.Spec.Database.AuditName,
 								},
 								v1.EnvVar{
@@ -69,31 +70,31 @@ func newStatefulSetForCR(cr *v1alpha1sormas.Sormas) *appsv1.StatefulSet {
 									},
 								},
 								v1.EnvVar{
-									Name: "SORMAS_POSTGRES_USER",
+									Name:  "SORMAS_POSTGRES_USER",
 									Value: cr.Spec.Database.User,
 								},
 								v1.EnvVar{
-									Name: "TZ",
+									Name:  "TZ",
 									Value: cr.Spec.Config.Locale.Timezone,
 								},
 							},
 							Resources: v1.ResourceRequirements{
 								Limits: v1.ResourceList(
-									map[resource.ResourceName]resource.Quantity{
-										"cpu": resource.NewMilliQuantity(225, resource.DecimalSI),
-										"memory": resource.NewMilliQuantity(525, resource.BinarySI),
+									map[v1.ResourceName]resource.Quantity{
+										"cpu":    *resource.NewMilliQuantity(225, resource.DecimalSI),
+										"memory": *resource.NewMilliQuantity(525, resource.BinarySI),
 									},
 								),
-								Requests: v1.ResourceList{
-									map[resource.ResourceName]resource.Quantity{
-										"cpu": resource.NewMilliQuantity(25, resource.DecimalSI),
-										"memory": resource.NewMilliQuantity(25, resource.BinarySI),
+								Requests: v1.ResourceList(
+									map[v1.ResourceName]resource.Quantity{
+										"cpu":    *resource.NewMilliQuantity(25, resource.DecimalSI),
+										"memory": *resource.NewMilliQuantity(25, resource.BinarySI),
 									},
-								},
+								),
 							},
 							Ports: []v1.ContainerPort{
 								v1.ContainerPort{
-									Name: "postgres",
+									Name:          "postgres",
 									ContainerPort: 5432,
 								},
 							},
@@ -111,10 +112,10 @@ func newStatefulSetForCR(cr *v1alpha1sormas.Sormas) *appsv1.StatefulSet {
 									},
 								},
 								InitialDelaySeconds: 30,
-								TimeoutSeconds: 3,
-								FailureThreshold: 3,
-								PeriodSeconds: 30,
-								SuccessThreshold: 1,
+								TimeoutSeconds:      3,
+								FailureThreshold:    3,
+								PeriodSeconds:       30,
+								SuccessThreshold:    1,
 							},
 						},
 					},
@@ -129,7 +130,7 @@ func newStatefulSetForCR(cr *v1alpha1sormas.Sormas) *appsv1.StatefulSet {
 						Resources: v1.ResourceRequirements{
 							Requests: v1.ResourceList(
 								map[v1.ResourceName]resource.Quantity{
-									"storage": resource.NewQuantity(cr.Spec.Database.Size, resource.DecimalSI),
+									"storage": *resource.NewQuantity(cr.Spec.Database.Size, resource.DecimalSI),
 								},
 							),
 						},
