@@ -27,9 +27,29 @@
     \subsection{Auswahl des Projektes}
     Die bis zum Verfassungszeitpunkt andauernde Krise um die Pandemie des SARS-Cov-2 Erregers 
     in den Jahren 2019/2020, hat einen Bedarf an Software zur zentralen Dokumentation und Analyse 
-    einer Epidemie ausgelöst.  
+    einer Epidemie ausgelöst. Um das Cloudportfolio der neuen Herausforderung anzupassen, wurde die Sormas-
+    software als SAAS Lösung aufgenommen. \newline >>///<<Hier erweitern>>///<<
       \subsubsection{Sormas}
+      Sormas ist eine eine quelloffene Softwarelösung zum Management und der Analyse von Epidemien.
+      Entwickler ist die Firma Symeda und das Helmholtzzentrum für Infektionsforschung Braunschweig.
+      Der ursprüngliche Einsatzzweck von Sormas war die Eindämmung und das Management der 
+      Ebolaepidemie in Westafrika im Jahr 2014, wo sie bis heute eingesetzt wird.
+      \newline Die Lösung besteht im großenganzen aus vier Komponenten: Einem relationalen 
+      Postgresdatenbankmanagementsystems in welchem der gesamte Datenstand gehalten wird. Einem 
+      Optionalen Mailserver zum Verschicken von E-Mailbenachrichtigungen. Einem Hazelcast-LRU-Cache
+      ,welcher in den Payara eingebettet oder extern betrieben werden kann und zur temporären Speicherung
+      der Nutzersitzungen dient. Und zuletzt einem Javaapplikationsserver von Payara auf welchem Javaapplikationen 
+      ausgeführt werden. Bei Sormas wurden zwei Javaservlet entwickelt, welche die Applikationslogik beinhalten.
+      Das \textit{web-ui} Servlet stellt eine Javascript basierte, grafische Nutzerschnittstelle  über das Web 
+      bereit an dem der Nutzer Plattformunabhängig arbeiten kann. Außerdem gibt es ein \textit{rest} Servlet, welches
+      eine REST-API für die Apps mobiler Endgeräte bereitstellt. Zur Installation auf einem Host werden 
+      Containerimages und dazugehörige Konfigurationsdateinen von Netzlink gebaut und auf Github angeboten.
+      Sormas und seine Komponenten sind komplett quelloffene Software, so ist eine Transparenz gegenüber dem
+      Kunden gewährleistet. Die Lizenzen der einzenen Projekte sind jedoch teilweise absent und somit proprietär.
       \subsubsection{RedHat OpenShift Container PLattform}
+      Die OpenShift Container Plattform ist eine \textit{enterprise} Kubernetesdistribution der Firma RedHat. Neben den
+      Funktionalitäten von Kubernetes beinhaltet die Plattform einen Supportvertrag und verbesserungen im Bereich 
+      Lifecyclemanagement und Administrationsaufwand auf Kosten der Leichgewichtigkeit.   
       \subsubsection{Golang}
       \subsubsection{Operator Framework}
     \subsection{Wirtschaftliche Betrachtung}
