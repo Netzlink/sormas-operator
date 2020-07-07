@@ -74,4 +74,11 @@ tags
 ### VisualStudioCode ###
 .vscode/*
 .history
+doc/*.toc
+doc/*.gz
+doc/*.log
+doc/*.ilg
+doc/*.fls
+doc/*.fdb_latexmk
+doc/*.aux
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode

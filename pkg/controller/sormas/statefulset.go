@@ -38,6 +38,10 @@ func newStatefulSetForCR(cr *sormasv1alpha1.Sormas) *appsv1.StatefulSet {
 									MountPath: "/var/lib/postgresql/data",
 								},
 							},
+							Args: []string{
+								"-c",
+								"'config_file=/etc/postgresql/postgresql.conf'",
+							},
 							Env: []v1.EnvVar{
 								v1.EnvVar{
 									Name: "POSTGRES_PASSWORD",

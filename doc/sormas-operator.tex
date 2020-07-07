@@ -1,0 +1,55 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\title{
+  Entwicklung eines Operator zur Installation und 
+  \textit{2
+  \textsuperscript{nd} day operations
+  } von Sormasinstanzen auf Kubernetes.
+}
+\date{07.07.2020}
+\author{Nico Kahlert}
+\begin{document}
+  \maketitle
+  \newpage
+  \tableofcontents
+  \newpage
+  \pagenumbering{arabic}
+  \vspace{2.5cm}
+  \section{Einleitung}
+    \subsection{Vortellung des Kunden}
+    Die Netzlink Informationstechnik GmbH ist ein IT-Systemhaus mit ca. 90
+    Mitarbeitern. Zur Zielgruppe des Unternehmens gehören hauptsächlich 
+    Kundes aus dem Mittelstand, für welche IT-Dienstleistungen On-Premise oder in der Cloud
+    erbracht werden. Die drei Firmenstandorte befinden sich in Braunschweig, Kassel und Hannover.
+    Außerdem führt Netzlink drei georedundante Rechenzentren in Hannover, Salzgitter und Braunschweig.
+    Jene dienen sowohl der eigenen Infrastruktur, als auch Kundenprojekten. 
+    \subsection{Auswahl des Projektes}
+    Die bis zum Verfassungszeitpunkt andauernde Krise um die Pandemie des SARS-Cov-2 Erregers 
+    in den Jahren 2019/2020, hat einen Bedarf an Software zur zentralen Dokumentation und Analyse 
+    einer Epidemie ausgelöst.  
+      \subsubsection{Sormas}
+      \subsubsection{RedHat OpenShift Container PLattform}
+      \subsubsection{Golang}
+      \subsubsection{Operator Framework}
+    \subsection{Wirtschaftliche Betrachtung}
+  \section{Projektplanung}
+    \subsection{Dokumentation und Management des Projekts}
+    \subsection{Durchführung der IST-Analyse}
+    \subsection{Ermittlung des SOLL-Zustands}
+      \subsubsection{Evaluierung der Betriebsplattform}
+      \subsubsection{Evaluierung der Installationswerkzeuge}
+  \section{Projektdurchführung}
+    \subsection{Ermittlung der Konfigurationspunkte der Sormascontainer}
+    \subsection{Ermittlung der Zielkonfiguration einer Sormasinstallation}
+    \subsection{Programmierung des Operators}
+      \subsubsection{Einrichten eines Repositories und Intitialisierung}
+      \subsubsection{Erstellen einer neuen API Ressource}
+      \subsubsection{Implementierung der Konfiguration in API Ressource}
+      \subsubsection{Implementierung des Controllers der API Ressource}
+      \subsubsection{Durchführung von lokalen Tests}
+    \subsection{Installation des Operators}
+      \subsubsection{Deployment via CLI}
+      \subsubsection{Instaziierung eines Sormas}
+  \section{Fazit}
+\end{document}

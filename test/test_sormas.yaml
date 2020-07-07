@@ -1,0 +1,40 @@
+apiVersion: v1alpha1
+kind: Sormas
+metadata:
+  name: test
+spec:
+  database:
+    image: hzibraunschweig/sormas-postgres:2.4.2
+    # host: localhost
+    user: sormas_user
+    password: ZWFmOTIwOTE1Nwo=
+    name: sormas
+    auditName: sormas_audit
+    size: 5
+  server:
+    image: hzibraunschweig/sormas-application:2.4.2
+    version: 1.43.2
+    url: sormas-docker-test.com
+    domain: sormas
+    jvmMax: 500
+    dev: "false"
+    replica: 1 # no RWX class
+    custom: false
+    password: ZWFmOTIwOTE1Nwo= # eaf9209157
+    # openssl rand -hex 5 | tee ./test-password | base64 >> ./test-password 
+  mail:
+    host: localhost
+    from: root@localhost
+    senderAddress: noreply@sormas-docker.com
+    senderName: SORMAS
+  config:
+    epidprefix: ""
+    seperator: ","
+    ticket: "" # not implemented
+    local:
+      latitude: "6.465422"
+      longitude: "3.406448"
+      locale: "de-DE"
+      mapZoom: "7"
+      timezone: "Europe/Berlin"
+      geoUUID: "" # dont have a valid geoUUID

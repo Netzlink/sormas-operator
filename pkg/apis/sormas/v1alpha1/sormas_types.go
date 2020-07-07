@@ -15,71 +15,71 @@ type SormasSpec struct {
 		// Baseimage for database deployment
 		Image     string `json:"image"`
 		// Host of external database
-		Host      string `json:"host"`     // Done nil or ""  ?
+		Host      string `json:"host"`     
 		// database user
-		User      string `json:"user"`     // Done
+		User      string `json:"user"`   
 		// database password
-		Password  string `json:"password"` // base64 // Done
+		Password  string `json:"password"` 
 		// database name
-		Name      string `json:"name"`     // Done
+		Name      string `json:"name"`
 		// audit database name
-		AuditName string `json:"audit"`    // Done
+		AuditName string `json:"audit"`
 		// pvc size
 		Size      int64  `json:"size"`
 	} `json:"database"`
 	// Server-config
 	Server struct {
 		// Baseimage for deployment
-		Image      string `json:"image"`    // Done
+		Image      string `json:"image"`
 		// url for the payara server
-		ServerURL  string `json:"url"`      // Done
+		ServerURL  string `json:"url"`  
 		// sormas domain name
-		DomainName string `json:"domain"`   // Done
+		DomainName string `json:"domain"` 
 		// maximum jvm heap memory
-		JvmMax     string `json:"jvmMax"`   // Done
+		JvmMax     string `json:"jvmMax"`  
 		// sormas version
-		Version    string `json:"version"`  // Done
+		Version    string `json:"version"` 
 		// development mode
-		DevMode    string `json:"dev"`      // Done
+		DevMode    string `json:"dev"`    
 		// sormas server replicas
-		Replicas   int32  `json:"replica"`  // Done
+		Replicas   int32  `json:"replica"`  
 		// custom mode for test
-		Custom     bool   `json:"custom"`   // Done Deploy! TODO pvc
+		Custom     bool   `json:"custom"`   
 		// sormas admin password (not working rn)
-		Password   string `json:"password"` // base64 TODO init??
+		Password   string `json:"password"` 
 	} `json:"server"`
 	// Mail server config
 	Mail struct {
 		// Mail host 
-		MailHost   string `json:"host"`          // Done
+		MailHost   string `json:"host"`         
 		// Mail from
-		MailFrom   string `json:"from"`          // Done
+		MailFrom   string `json:"from"`        
 		// Sender address
-		SenderAddr string `json:"senderAddress"` // Done
+		SenderAddr string `json:"senderAddress"` 
 		// Sender name
-		SenderName string `json:"senderName"`    // Done
+		SenderName string `json:"senderName"`  
 	} `json:"mail"`
 	// Sormas config
 	Config struct {
 		// Localization
 		Locale struct {
 			// Latitude
-			Latitude  string `json:"latitude"`  // Done
+			Latitude  string `json:"latitude"` 
 			// Longitude
-			Longitude string `json:"longitude"` // Done
+			Longitude string `json:"longitude"`
 			// Linux locale
-			Locale    string `json:"locale"`    // Done
+			Locale    string `json:"locale"`   
 			// OpenStreetmap zoom
-			MapZoom   string `json:"mapZoom"`   // Done
+			MapZoom   string `json:"mapZoom"`  
 			// Timezone
-			Timezone  string `json:"timezone"`  // Done
+			Timezone  string `json:"timezone"` 
 			// GeoUUID
-			GeoUUID   string `json:"geoUUID"`   // Done
+			GeoUUID   string `json:"geoUUID"`  
 		} `json:"local"`
 		// Prefix in database
-		Epidprefix string `json:"epidprefix"` 	// Done
+		Epidprefix string `json:"epidprefix"` 
 		// Seperator to use in CSV export
-		Seperator  string `json:"seperator"`	// Done
+		Seperator  string `json:"seperator"`
 		// Ticket for password generation
 		Ticket     string `json:"ticket"`
 	} `json:"config"`
