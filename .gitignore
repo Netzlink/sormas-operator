@@ -81,4 +81,5 @@ doc/*.ilg
 doc/*.fls
 doc/*.fdb_latexmk
 doc/*.aux
+doc/assets/*
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
