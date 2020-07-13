@@ -2,6 +2,7 @@ package sormas
 
 import (
 	"context"
+	"fmt"
 
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
@@ -141,6 +142,12 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
+	}
+	
+	// ignore on pause
+	if instance.Spec.Paused {
+		reqLogger.Info(fmt.Sprintf("Instance %s is paused in namespace %s", instance.Name , instance.Namespace))
+		return reconcile.Result{}, nil
 	}
 
 	// Define a new Pod object

@@ -5,11 +5,10 @@ import (
 	// "k8s.io/code-generator/pkg/namer"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // SormasSpec defines the desired state of Sormas
 type SormasSpec struct {
+	// Ignored by operator
+	Paused	bool	`json:"paused"`
 	// Databaseconfig
 	Database struct {
 		// Baseimage for database deployment

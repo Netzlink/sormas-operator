@@ -15,8 +15,7 @@ spec:
       serviceAccountName: sormas-operator
       containers:
         - name: sormas-operator
-          # Replace this with the built image name
-          image: docker.netzlink.com/operators/sormas-operator:5f2f789e0a
+          image: docker.io/nicokahlert/sormas-operator:1c40e3f6cf
           command:
           - sormas-operator
           imagePullPolicy: Always
