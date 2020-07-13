@@ -191,7 +191,7 @@
          Aufgabe &  Aufwand (h) & Kosten (EUR)  \\
          Evaluierung des Objekttyps der Komponenten & 0.5 & 30  \\
          Schreiben der Manifeste & 3.5 & 210 \\
-         Initialisierung des Projektes & 0.5h & 30 \\
+         Initialisierung des Projektes & 0.5 & 30 \\
          Beschreibung der API-Objekte und Typen & 2 & 120 \\
          Beschreibung der Reconcile-logic & 8 &  480 \\
          Anwenden der Reconcielogic & 10.5 & 630 \\
@@ -272,15 +272,192 @@
     Da Sormas an sich \emph{Stateless} ausgelegt ist, ist der einzige weitere Konfigurationspunkt
     die Größe des \emph{Volumes} in welchem  das Postgresdatenbankmanagementsystem seine Daten persistiert.
     \subsection{Ermittlung der Zielkonfiguration einer Sormasinstallation}
+    Damit ein Sormas auf Kubernetes laufen kann, müssen zuerst die Objekte definiert werden, welche die Applikation beschreiben.
+    Der Javaserver wird aufgrund seiner Zustandslosigkeit in einem \emph{Deployment} beschrieben, da er so recht dynamisch
+    auf den Workern plaziert wird und die Möglichkeit von Rollouts besitzt.
+    Dazu gibt es einen \emph{Service}, welcher den Javaserver loadbalanced.
+    Die Postgresdatenbank läuft innerhalb eines \emph{Statefulsets}, um die Sicherheit der 
+    persistenten Daten vor der eigentlichen Dynamik der Plattform zu schützen.
+    Als letztes Objekt fehlt die OpenShift eigene \emph{Route}, welche Sormas per URL erreichbar macht.
     \subsection{Programmierung des Operators}
       \subsubsection{Einrichten eines Repositories und Intitialisierung}
-      
+      Zu Beginn des Projektes habe Ich in einem neuen Ordner ein \emph{Git}repository angelegt und auf Github 
+      das dazugehörige \emph{Remote} angelegt. Dort konnte das Projekt nun mit dem OperatorSDK initialisiert
+      werden. Dies geschah mit dem Kommando: 
+      \begin{lstlisting}
+      operator-sdk new sormas-operator \ --repo=github.com/Netzlink/sormas-operator
+      \end{lstlisting}
+      \emph{Initialisierung des Projektes}
       \subsubsection{Erstellen einer neuen API Ressource}
-      \subsubsection{Implementierung der Konfiguration in API Ressource}
+      In diesem Schritt habe Ich das abstrahierte Objekt für den Operator abgebildet.
+      Das Objekt ist ein Typ namens Sormas mit den Parametern, welche eine Sormasinstanz definieren.
+      Da dies leicht unübersichtlch wird benutzt das Sormasobjekt hier weitere Unterstrukturen.
+      Die Metaprogrammierung der Sormasressource folgt mit diesem Befehl des OperatorSDK:
+      \begin{lstlisting}
+       operator-sdk add api \ --api-version=sormas.netzlink.com/v1alpha1 --kind=Sormas
+      \end{lstlisting}
+      Bei der Ausführung wird ein Ordner "Sormas" im Pfad pkg/apis erstellt. Dort befindet sich in der v1alpha1 Version der
+      generierte Code für den Sormastypen, den Ich nach dem YAML der Docker-Compose Konfiguration in Go überschrieb:
+      \begin{lstlisting}
+      type SormasSpec struct {
+	// Databaseconfig
+	Database struct {
+		// Baseimage for database deployment
+		Image string `json:"image"`
+		// Host of external database
+		Host string `json:"host"`
+		// database user
+		User string `json:"user"`
+		// database password
+		Password string `json:"password"`
+		// database name
+		Name string `json:"name"`
+		// audit database name
+		AuditName string `json:"audit"`
+		// pvc size
+		Size int64 `json:"size"`
+	} `json:"database"`
+	// Server-config
+	Server struct {
+		// Baseimage for deployment
+		Image string `json:"image"`
+		// url for the payara server
+		ServerURL string `json:"url"`
+		// sormas domain name
+		DomainName string `json:"domain"`
+		// maximum jvm heap memory
+		JvmMax string `json:"jvmMax"`
+		// sormas version
+		Version string `json:"version"`
+		// development mode
+		DevMode string `json:"dev"`
+		// sormas server replicas
+		Replicas int32 `json:"replica"`
+		// custom mode for test
+		Custom bool `json:"custom"`
+		// sormas admin password (not working rn)
+		Password string `json:"password"`
+	} `json:"server"`
+	// Mail server config
+	Mail struct {
+		// Mail host
+		MailHost string `json:"host"`
+		// Mail from
+		MailFrom string `json:"from"`
+		// Sender address
+		SenderAddr string `json:"senderAddress"`
+		// Sender name
+		SenderName string `json:"senderName"`
+	} `json:"mail"`
+	// Sormas config
+	Config struct {
+		// Localization
+		Locale struct {
+			// Latitude
+			Latitude string `json:"latitude"`
+			// Longitude
+			Longitude string `json:"longitude"`
+			// Linux locale
+			Locale string `json:"locale"`
+			// OpenStreetmap zoom
+			MapZoom string `json:"mapZoom"`
+			// Timezone
+			Timezone string `json:"timezone"`
+			// GeoUUID
+			GeoUUID string `json:"geoUUID"`
+		} `json:"local"`
+		// Prefix in database
+		Epidprefix string `json:"epidprefix"`
+		// Seperator to use in CSV export
+		Seperator string `json:"seperator"`
+		// Ticket for password generation
+		Ticket string `json:"ticket"`
+	} `json:"config"`
+}
+      \end{lstlisting}
+      \emph{Definition Sormas in Golang}
+      Da hier Wiederverwendbarkeit der Teilstrukturen keine Verwendung findet,
+      werden für jene keine Einzeltypen erstellt.
       \subsubsection{Implementierung des Controllers der API Ressource}
+      Nachdem der Controller nun eine Definition des Objektes hat, welches er managen soll, benötigt er 
+      Instruktionen über die Erstellung der Applikation. Für die Generierung des Grundgerüsts eines Controllers
+      wird wieder das OperatorSDK benutzt:
+      \begin{lstlisting}
+      operator-sdk add controller --api-version=sormas.netzlink.com/v1alpha1 --kind=Sormas
+      \end{lstlisting} 
+      \emph{Erstellung eines Controllers}
+
+      Um die KubernetesAPI von DoS durch Operatoren zu schützen, werden in der \emph{add}-Funktion
+      des Controllers explizit die Kubernetesressourcen genannt, auf welchen ein \emph{WATCH} Aufruf 
+      ausgeführt wird. Zusätzlich wird eine Kennung abgefragt um den Besitzenden Controller herauszufinden.
+      \newline
+      Innerhalb jeder Änderung dieser Ressourcen im Kluster wird die \emph{Reconcile}-Funktion auf dieses Objekt 
+      ausgeführt. Die \emph{Reconcile}-Schleife fragt alle Sormas vom Kluster an. Daraufhin werden die Objekte berechnet,
+      welche für diese Instanz zu konfigurieren sind. Als nächstes werden die ,der Instanz zugehörigen, Objekte an der Kubernetes
+      API angefragt. Danach findet ein  Vergleich der theoretischen Objekte und der real existierenden Objekte statt.
+      Die Objekte mit Unterschieden im SOLL/IST-Vergleich, werden zum SOLL-Zustand angepasst.
+      \newline
+      Zum erstellen der Objekte habe Ich jeweils eine Funktion im deklarativen Stil erstellt.
+      So kann die Architektur von jeder ebene aus verstanden werden.
       \subsubsection{Durchführung von lokalen Tests}
+      Da der Operator nun fertig ist, fehlt der grundsätzliche Test seiner Aufgabe.
+      Die Konfiguration eines Sormas auf Kubernetes ist dermaßen komplex, dass sich weitere Unit- oder Integrationstest erst, bei weiteren Funktionen 
+      lohnen würden. Aus diesem Grund führe Ich die beigegebenen Tests des OperatorSDK aus:
+      \begin{lstlisting}
+        operator-sdk test local ./test
+      \end{lstlisting}
+      \emph{Tests des OperatorSDK}
+      Nach einer Korrektion der Funktion zum erstellen eines Deploymentobjekts, lief der Test positiv.
+      Der finale Test ist jedoch die Erfolgreiche Erstellung eines Sormas mit dem Operator.
+      Der Operator wird dafür auf meinem lokalen System kompiliert und ausgeführt. In einem  Terminal benutze Ich 
+      das \emph{kubectl}-tool, um ein Sormasobjekt an die API zu liefern.
+      \begin{lstlisting}
+          operator-sdk run local & && kubectl apply -f \ ./test/test-sormas.yaml
+      \end{lstlisting}
+      Der Operator hat das Objekt erfolgreich erkannt und
+      innerhalb von kurzr Zeit die Objekte im Kluster erstellt.  
     \subsection{Installation des Operators}
       \subsubsection{Deployment via CLI}
+      Nachdem der Test erfolgreich war, musste der Operator final im Kluster installiert werden.
+      Dafür verwendete Ich das \emph{kubectl}-tool:
+      \begin{lstlisting}
+          kubectl apply -Rf deploy
+      \end{lstlisting}
+      \emph{Installation des Operators}
+      Dabei wurden die CRDs im Kluster aufgenommen und ein Pod mit dem Operator gestartet.
       \subsubsection{Instaziierung eines Sormas}
+      Nach der rekursiven Aufnahme aller Dokumente im deploy Ordner wurde auch eine Beispielinstanz im Kluster
+      instanziiert (Abbildung \ref{fig:sormas}). Die Installation ist somit komplett abgeschlossen.
+      \begin{figure}[!ht]
+        \includegraphics[width=\linewidth]{assets/sormas_instanz.png}
+        \caption{Sormas auf dem OpenShift}
+        \label{fig:sormas}
+      \end{figure}
   \section{Fazit}
+  Als Fazit lässt sich sagen, dass der Operator die Installation eines Sormas 
+  auf Kubernetes durchaus vereinfacht. Jedoch sollte man sich im Klaren sein, dass die 
+  Erstelung einer neuen API für viele Operatoren die Datenbank des Klusters sehr beanspruchen kann.
+  Also sollte man bei einfachen Applikationen lieber auf andere Konfigurationssysteme zurückgreifen.
+  Das Standarttool auf diesem Gebiet ist die Templatingsoftware HELM, welche mit einer eigenen DSL das 
+  Beschreiben von YAML zulässt und zusätzlich das benutzen von Repositories wie bei  einer Linuxdistribution bietet.
+  Jedoch gibt es ein weiteres Tool, welches die deklarative Beschreibung von YAML mit YAML zulässt.
+  Dieses Tool heißt Kustomize und wird mit jedem Kubectl unter der \emph{-k} flag ausgerollt. Jedoch ist
+  Netzlink mit dem Operator gerüstet, weitere 2nd-Day-Management Aufgaben in den Operator einzufügen, die ein Konfigurationsmanagementwerkzeug
+  nicht bietet.  
+  \section{Quellen}
+  \begin{itemize}
+      \item kubernetes.io \date{07.07.2020}
+      \item operatorframework.io \date{01.07.2020}
+      \item github.com/operator-framework/operator-sdk \date{01.07.2020}
+      \item sdk.operatorframework.io/docs/ \date{05.07.2020}
+      \item github.com/hzi-braunschweig/SORMAS-Docker \date{13.07.2020}
+      \item github.com/Netzlink/sormas-operator \date{13.07.2020}
+      \item openshift.com \date{13.07.2020}
+      \item sormas-oegd.de \date{08.07.2020}
+      \item golang.org \date{02.07.2020}
+      \item pkg.go.dev \date{04.06.2020}
+      \item helm.sh \date{13.06.2020}
+      \item kustomize.io \date{13.06.2020}
+      \item britannica.com/technology/Moores-law \date{13.06.2020}
+  \end{itemize}
 \end{document}
