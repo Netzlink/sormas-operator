@@ -18,6 +18,3 @@ apply:	push
 cluster:
 	kind create cluster --name $(IMAGE)
 	kubectl cluster-info --context kind-$(IMAGE)
-
-diagrams:
-	plantuml -tsvg doc/$(IMAGE).md
