@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"k8s.io/api/core/v1"
 )
 
 var log = logf.Log.WithName("controller_sormas")
@@ -64,7 +65,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &core.PersistentVolumeClaim{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &v1.PersistentVolumeClaim{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
 	})
@@ -80,7 +81,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	err = c.Watch(&source.Kind{Type: &core.Secret{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &v1.Secret{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
 	})
@@ -173,10 +174,10 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	}
 
 	// Check if this Pod already exists
-	foundSecret := &core.Secret{}
+	foundSecret := &v1.Secret{}
 	foundDeployment := &appsv1.Deployment{}
 	foundService := &core.Service{}
-	foundPVC := &core.PersistentVolumeClaim{}
+	foundPVC := &v1.PersistentVolumeClaim{}
 	foundStatefulSet := &appsv1.StatefulSet{}
 	foundRoute := &routev1.Route{}
 

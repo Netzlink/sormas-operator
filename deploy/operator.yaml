@@ -15,7 +15,7 @@ spec:
       serviceAccountName: sormas-operator
       containers:
         - name: sormas-operator
-          image: docker.io/nicokahlert/sormas-operator:1c40e3f6cf
+          image: docker.io/nicokahlert/sormas-operator:a9b291cef0
           command:
           - sormas-operator
           imagePullPolicy: Always

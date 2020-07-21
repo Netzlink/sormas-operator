@@ -4,10 +4,10 @@ import (
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/pkg/apis/core"
+	"k8s.io/api/core/v1"
 )
 
-func newPVCForCR(cr *sormasv1alpha1.Sormas) *core.PersistentVolumeClaim {
+func newPVCForCR(cr *sormasv1alpha1.Sormas) *v1.PersistentVolumeClaim {
 	sormasLabels := map[string]string{
 		"app": cr.Name,
 	}
@@ -16,15 +16,15 @@ func newPVCForCR(cr *sormasv1alpha1.Sormas) *core.PersistentVolumeClaim {
 		Namespace: cr.Namespace,
 		Labels:    sormasLabels,
 	}
-	return &core.PersistentVolumeClaim{
+	return &v1.PersistentVolumeClaim{
 		ObjectMeta: secretMetaData,
-		Spec: core.PersistentVolumeClaimSpec{
-			AccessModes: []core.PersistentVolumeAccessMode{
-				core.PersistentVolumeAccessMode("RWO"),
+		Spec: v1.PersistentVolumeClaimSpec{
+			AccessModes: []v1.PersistentVolumeAccessMode{
+				v1.PersistentVolumeAccessMode("RWO"),
 			},
-			Resources: core.ResourceRequirements{
-				Requests: core.ResourceList(
-					map[core.ResourceName]resource.Quantity{
+			Resources: v1.ResourceRequirements{
+				Requests: v1.ResourceList(
+					map[v1.ResourceName]resource.Quantity{
 						"storage": *resource.NewQuantity(1*1000000000, resource.DecimalSI),
 					},
 				),
