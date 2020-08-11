@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	sormasv1alpha1 "github.com/Netzlink/sormas-operator/pkg/apis/sormas/v1alpha1"
-	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/apis/core"
+	networking "k8s.io/kubernetes/pkg/apis/networking"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -20,7 +21,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"k8s.io/api/core/v1"
 )
 
 var log = logf.Log.WithName("controller_sormas")
@@ -56,7 +56,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to secondary resource Pods and requeue the owner Sormas
-	// Watching Deployment, PVC, Statefulset, Secret, Configmap, Route
+	// Watching Deployment, PVC, Statefulset, Secret, Configmap, Ingress
 	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
@@ -90,7 +90,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// TODO: make this shit working again
-	err = c.Watch(&source.Kind{Type: &routev1.Route{}}, &handler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &networking.Ingress{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &sormasv1alpha1.Sormas{},
 	})
@@ -144,10 +144,10 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-	
+
 	// ignore on pause
 	if instance.Spec.Paused {
-		reqLogger.Info(fmt.Sprintf("Instance %s is paused in namespace %s", instance.Name , instance.Namespace))
+		reqLogger.Info(fmt.Sprintf("Instance %s is paused in namespace %s", instance.Name, instance.Namespace))
 		return reconcile.Result{}, nil
 	}
 
@@ -158,7 +158,7 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	sormasService := newServiceForCR(instance)
 	sormasPVC := newPVCForCR(instance)
 	sormasStatefulSet := newStatefulSetForCR(instance)
-	sormasRoute := newRouteForCR(instance)
+	sormasIngress := newIngressForCR(instance)
 
 	for _, obj := range []metav1.Object{
 		sormasSecret,
@@ -166,7 +166,7 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 		sormasService,
 		sormasPVC,
 		sormasStatefulSet,
-		sormasRoute,
+		sormasIngress,
 	} {
 		if err := controllerutil.SetControllerReference(instance, obj, r.scheme); err != nil {
 			return reconcile.Result{}, err
@@ -179,7 +179,7 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 	foundService := &core.Service{}
 	foundPVC := &v1.PersistentVolumeClaim{}
 	foundStatefulSet := &appsv1.StatefulSet{}
-	foundRoute := &routev1.Route{}
+	foundIngress := &networking.Ingress{}
 
 	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasSecret.Name, Namespace: sormasSecret.Namespace}, foundSecret)
 	if err != nil && errors.IsNotFound(err) {
@@ -246,14 +246,14 @@ func (r *ReconcileSormas) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasRoute.Name, Namespace: sormasRoute.Namespace}, foundRoute)
+	err = r.client.Get(context.TODO(), types.NamespacedName{Name: sormasIngress.Name, Namespace: sormasIngress.Namespace}, foundIngress)
 	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Route", "Namespace", sormasRoute.Namespace, "Name", sormasRoute.Name)
-		err = r.client.Create(context.TODO(), foundRoute)
+		reqLogger.Info("Creating a new Ingress", "Namespace", sormasIngress.Namespace, "Name", sormasIngress.Name)
+		err = r.client.Create(context.TODO(), foundIngress)
 		if err != nil {
 			return reconcile.Result{}, err
 		}
-		// Route created successfully - don't requeue
+		// Ingress created successfully - don't requeue
 		return reconcile.Result{}, nil
 	} else if err != nil {
 		return reconcile.Result{}, err
